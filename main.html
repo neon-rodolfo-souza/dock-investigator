@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dock Investigator</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+      --border-color: #444;
+      --header-bg: #1f1f1f;
+      --button-bg: #333;
+      --button-hover: #444;
+      --accent-color: #03dac5;
+      --modal-bg: #262626;
+      --table-header-bg: #333;
+      --table-text-color: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      font-size: 2.2em;
+      font-weight: 500;
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--accent-color);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: var(--header-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .base-url-display {
+      font-size: 0.9em;
+    }
+
+    .config-button, .fetch-button, .tab-button {
+      background-color: var(--button-bg);
+      color: var(--text-color);
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.1s ease;
+    }
+
+    .config-button:hover, .fetch-button:hover, .tab-button:hover {
+      background-color: var(--button-hover);
+      transform: scale(1.02);
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+
+    .tab-button {
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      padding: 10px 20px;
+      margin-right: 10px;
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-color);
+      cursor: pointer;
+      transition: border-bottom 0.3s ease, color 0.3s ease;
+    }
+
+    .tab-button:hover {
+      color: var(--accent-color);
+    }
+
+    .tab-button.active {
+      color: var(--accent-color);
+      border-bottom: 3px solid var(--accent-color);
+      font-weight: 500;
+    }
+
+    /* Optional: Focus style for keyboard accessibility */
+    .tab-button:focus {
+      outline: none;
+      border-bottom-color: var(--accent-color);
+    }
+
+    .customer-section {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .customer-section input {
+      padding: 10px;
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: #1e1e1e;
+      color: var(--text-color);
+      margin-top: 5px;
+    }
+
+    .result {
+      margin-top: 20px;
+      background-color: var(--header-bg);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      overflow: auto;
+    }
+
+    .config-modal,
+    .invoice-details-modal,
+    .simulation-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .config-modal.active,
+    .invoice-details-modal.active,
+    .simulation-modal.active {
+      display: flex;
+    }
+
+    .modal-content,
+    .simulation-content,
+    .invoice-details-content {
+      background-color: var(--modal-bg);
+      color: var(--text-color);
+      padding: 30px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 1200px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    .close-details,
+    .close-simulation {
+      cursor: pointer;
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      color: var(--text-color);
+    }
+
+    .route-display {
+      font-size: 0.9em;
+      margin-bottom: 15px;
+      padding: 8px;
+      background-color: var(--header-bg);
+      border-radius: 4px;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    th {
+      background-color: var(--table-header-bg);
+      color: var(--table-text-color);
+    }
+
+    td {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .simulate-button {
+      background: none;
+      border: none;
+      color: var(--accent-color);
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .simulate-button:hover {
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .config-button, .fetch-button, .tab-button {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      .tabs {
+        flex-direction: column;
+      }
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    /* Improved styling for the modal content */
+    .modal-content {
+      background-color: var(--modal-bg);
+      padding: 30px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      position: relative;
+    }
+
+    /* Header and footer use flex to align content */
+    .modal-header,
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+    }
+
+    /* Style for close ("X") button */
+    .close-modal {
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+
+    /* Body spacing for the form items */
+    .modal-body {
+      margin: 20px 0;
+    }
+
+    .config-item {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 15px;
+    }
+
+    .config-item label {
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    .config-item input {
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: #1e1e1e;
+      color: var(--text-color);
+    }
+
+    /* Footer button styling */
+    .modal-footer button {
+      background-color: var(--button-bg);
+      color: var(--text-color);
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .modal-footer button:hover {
+      background-color: var(--button-hover);
+    }
+
+    .status-aberta {
+      color: #2196F3; /* A pleasant blue shade */
+    }
+
+    .status-fechada {
+      color: #4CAF50; /* A pleasant green shade */
+    }
+
+    .details-button {
+      background-color: #1976d2; /* Base blue color */
+      color: #fff;
+      border: none;
+      padding: 1px 10px;
+      border-radius: 4px;
+      font-family: 'Roboto', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .details-button:hover {
+      background-color: #1565c0; /* Slightly darker on hover */
+      transform: translateY(-1px);
+    }
+
+    .details-button:active {
+      transform: translateY(0);
+    }
+
+    .customer-emphasis {
+      background-color: var(--header-bg);
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .customer-emphasis h3 {
+      margin-top: 0;
+      color: var(--accent-color);
+      font-size: 1.5em; /* Larger font for Customer Details header */
+    }
+
+    .customer-emphasis p {
+      margin: 5px 0;
+      font-size: 1.1em;
+    }
+
+    .customer-other-info {
+      background-color: var(--header-bg);
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+    }
+    .customer-other-info h3 {
+      margin-top: 0;
+      color: var(--accent-color);
+      font-size: 1.2em; /* Slightly smaller for Other Customer Details header */
+    }
+    .customer-other-info p {
+      margin: 5px 0;
+      font-size: 1.1em;
+    }
+
+    .key {
+      font-weight: 500;
+      margin-right: 0.5em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">Dock Investigator</div>
+    <div class="header">
+      <div class="base-url-display">Base URL: <span id="currentBaseUrl">Not configured</span></div>
+      <button class="config-button" id="configIcon">Configure</button>
+    </div>
+    
+    <div class="customer-section">
+      <label for="customerId">Account ID:</label>
+      <input type="text" id="customerId" placeholder="Enter Account ID">
+    </div>
+    
+    <div class="tabs" role="tablist">
+      <button class="tab-button active" data-tab="customer-tab" role="tab" aria-selected="true">
+        Customer
+      </button>
+      <button class="tab-button" data-tab="invoice-tab" role="tab" aria-selected="false">
+        Invoices
+      </button>
+      <button class="tab-button" data-tab="transactions-tab" role="tab" aria-selected="false">
+        Transactions Not Processed
+      </button>
+      <button class="tab-button" data-tab="eventos-tab" role="tab" aria-selected="false">
+        External Events
+      </button>
+    </div>
+    
+    <div id="customer-tab" class="tab-content active">
+      <div class="route-display">GET /v2/api/contas/{accountId}</div>
+      <button class="fetch-button">Fetch Customer Data</button>
+      <div class="result"></div>
+    </div>
+    
+    <div id="invoice-tab" class="tab-content">
+      <div class="route-display">GET /v2/api/faturas?idConta={accountId}&situacaoProcessamento=TODAS</div>
+      <button class="fetch-button">Fetch Invoices</button>
+      <div class="result">
+        <table class="invoices-table" style="display: none">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Closing Date</th>
+              <th>Due Date</th>
+              <th>Real Due Date</th>
+              <th>Total Value</th>
+              <th>Min Payment</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="transactions-tab" class="tab-content">
+      <div class="route-display">GET /v2/api/contas/{accountId}/transacoes/listar-nao-processadas</div>
+      <button class="fetch-button">Fetch Transactions Not Processed</button>
+      <div class="result"></div>
+    </div>
+
+    <div id="eventos-tab" class="tab-content">
+      <div class="route-display">
+        GET /v2/api/eventos-externos-compras?dataCompraFinal={dataCompraFinal}&dataCompraInicial={dataCompraInicial}&idConta={accountId}
+      </div>
+      <p class="note" style="font-style: italic; color: #888; margin: 8px 0;">
+        Note: This query returns events for the last 30 days.
+      </p>
+      <button class="fetch-button">Fetch EventosExternosCompras</button>
+      <div class="result"></div>
+    </div>
+  </div>
+  
+  <div class="config-modal" id="configModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Configuration</h3>
+      </div>
+      <div class="modal-body">
+        <div class="config-item">
+          <label for="dockBaseUrl">Dock Base URL</label>
+          <input type="text" id="dockBaseUrl" placeholder="Enter Dock Base URL">
+        </div>
+        <div class="config-item">
+          <label for="secret">API Key</label>
+          <input type="password" id="secret" placeholder="Enter Secret">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="saveConfig" class="config-save">Save</button>
+        <button id="closeConfig" class="config-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Invoice Details Modal -->
+  <div class="invoice-details-modal" id="invoiceDetailsModal">
+    <div class="invoice-details-content">
+      <span class="close-details" id="closeDetails">&times;</span>
+      <div class="route-display">GET /v2/api/faturas/{invoiceId}/transacoes</div>
+      <div class="transactions-table-container" style="max-height: 400px; overflow-y: auto;">
+        <table class="transactions-table">
+          <thead>
+            <tr>
+              <th>Event ID</th>
+              <th>Transaction Date</th>
+              <th>Transaction Type</th>
+              <th>Merchant Name</th>
+              <th>Amount</th>
+              <th>Installment Number</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Simulation Modal -->
+  <div class="simulation-modal" id="simulationModal">
+    <div class="simulation-content">
+      <span class="close-simulation" id="closeSimulation">&times;</span>
+      <table class="simulation-table">
+        <thead>
+          <tr>
+            <th>Number of Installments</th>
+            <th>Installment Value</th>
+            <th>Discount Value</th>
+            <th>Discounted Installment Value</th>
+            <th>Interest Rebate</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  
+  <script src="main.js"></script>
+</body>
+</html>

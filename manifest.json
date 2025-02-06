@@ -1,0 +1,24 @@
+{
+    "manifest_version": 3,
+    "name": "Dock Investigator",
+    "version": "1.0",
+    "description": "Internal tool for Dock API access",
+    "permissions": [
+      "storage"
+    ],
+    "host_permissions": [
+      
+    ],
+    "action": {
+      
+    },
+    "background": {
+      "service_worker": "background.js"
+    },
+    "web_accessible_resources": [
+      {
+        "resources": ["main.html"],
+        "matches": ["<all_urls>"]
+      }
+    ]
+  }
