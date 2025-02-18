@@ -1,8 +1,7 @@
 # Dock Investigator
 A Chrome extension that interacts with Dock API endpoints and shows data in a human-friendly way.
 
-<img width="615" alt="{49882D27-2ED7-4F00-A995-A0C6E7D58483}" src="https://github.com/user-attachments/assets/6570bb0f-6bed-45c6-89e1-9d63d5f46213" />
-
+<img width="611" alt="{AC23BDAC-EAF6-4984-A237-146A6ECC9F1A}" src="https://github.com/user-attachments/assets/267015cc-9f80-43c0-82cb-8a53e6925838" />
 
 ## How to install
 1. Clone this repository
