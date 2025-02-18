@@ -399,8 +399,8 @@ function formatValue(value) {
 }
 
 function formatDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString();
+  const date = new Date(dateString); // Parse the date string directly
+  return date.toLocaleString('pt-BR', { timeZone: 'UTC' }).replace(',', ''); // Format to Brazilian date and time without comma
 }
 
 async function makeApiRequest(url, config) {
