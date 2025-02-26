@@ -260,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       const parcelaDisplay = (numeroParcela !== null && numeroParcela > 0) ? `${numeroParcela}/${quantidadeParcelas}` : '';
 
                       tr.innerHTML = `
+                        <td>${transaction.idTransacao}</td>
                         <td>${transaction.idEvento}</td>
                         <td>${formatDate(transaction.dataHoraTransacao)}</td>
                         <td>${transaction.descricaoTipoTransacao}</td>
