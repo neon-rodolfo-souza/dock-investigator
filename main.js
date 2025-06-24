@@ -256,12 +256,13 @@ document.addEventListener('DOMContentLoaded', () => {
                       const tr = document.createElement('tr');
                       const numeroParcela = transaction.numeroParcela;
                       const quantidadeParcelas = transaction.quantidadeParcelas;
+                      const idEvento = transaction.idEvento;
 
                       const parcelaDisplay = (numeroParcela !== null && numeroParcela > 0) ? `${numeroParcela}/${quantidadeParcelas}` : '';
 
                       tr.innerHTML = `
                         <td>${transaction.idTransacao}</td>
-                        <td>${transaction.idEvento}</td>
+                        <td class="event-id" data-id="${idEvento}" style="cursor: pointer; color: #0066cc; text-decoration: underline;">${idEvento}</td>
                         <td>${formatDate(transaction.dataHoraTransacao)}</td>
                         <td>${transaction.descricaoTipoTransacao}</td>
                         <td>${transaction.nomeEstabelecimento}</td>
@@ -292,6 +293,20 @@ document.addEventListener('DOMContentLoaded', () => {
                       tr.appendChild(actionCell);
 
                       transactionsTableBody.appendChild(tr);
+                      
+                      // Add click event for the Event ID cell
+                      const eventIdCell = tr.querySelector('.event-id');
+                      if (eventIdCell && idEvento) {
+                        eventIdCell.addEventListener('click', async () => {
+                          try {
+                            const adjustmentRoute = `${config.dockBaseUrl}/v2/api/ajustes-financeiros/${idEvento}`;
+                            const adjustmentData = await makeApiRequest(adjustmentRoute, config);
+                            showAdjustmentData(idEvento, adjustmentData, `GET /v2/api/ajustes-financeiros/${idEvento}`);
+                          } catch (error) {
+                            alert(`Error fetching financial adjustment: ${error.message}`);
+                          }
+                        });
+                      }
                     });
                   }
 
@@ -347,11 +362,70 @@ document.addEventListener('DOMContentLoaded', () => {
     routeDisplay.textContent = `GET /v2/api/faturas/${invoiceId}?idConta=${customerId}`;
   }
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && detailsModal && detailsModal.classList.contains('active')) {
-      detailsModal.classList.remove('active');
-    }
-  });
+  // Create a new modal for financial adjustments
+  function createFinancialAdjustmentModal() {
+    // Check if modal already exists
+    if (document.getElementById('adjustmentModal')) return;
+    
+    const modal = document.createElement('div');
+    modal.id = 'adjustmentModal';
+    modal.className = 'modal';
+    
+    // Add styles to ensure modal appears on top
+    modal.style.cssText = 'position: fixed; z-index: 1500; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); display: none;';
+    
+    modal.innerHTML = `
+      <div class="modal-content adjustment-content" style="position: relative; background-color: #252525; margin: 10% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 800px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); color: #e0e0e0;">
+        <div class="adjustment-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #444;">
+          <span class="route-display" style="font-weight: bold; color: #9ecaff; padding-bottom: 10px;"></span>
+          <span class="close-adjustment" style="cursor: pointer; font-size: 24px; font-weight: bold; color: #e0e0e0;">&times;</span>
+        </div>
+        <div class="adjustment-data">
+          <pre style="background: #333; color: #fff; padding: 15px; border-radius: 5px; overflow: auto; max-height: 400px; font-family: monospace; font-size: 14px; border: 1px solid #444;"></pre>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add event listeners for closing the modal
+    const closeAdjustment = modal.querySelector('.close-adjustment');
+    closeAdjustment.addEventListener('click', () => {
+      modal.style.display = 'none';
+      document.body.classList.remove('modal-open');
+    });
+    
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+      }
+    });
+    
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.style.display === 'block') {
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+      }
+    });
+  }
+
+  // Function to display financial adjustment data
+  function showAdjustmentData(eventId, data, routeStr) {
+    // First ensure the modal exists
+    createFinancialAdjustmentModal();
+    
+    const adjustmentModal = document.getElementById('adjustmentModal');
+    const routeDisplay = adjustmentModal.querySelector('.route-display');
+    const pre = adjustmentModal.querySelector('pre');
+    
+    routeDisplay.textContent = routeStr;
+    pre.textContent = JSON.stringify(data, null, 2);
+    
+    // Use direct style manipulation for display
+    adjustmentModal.style.display = 'block';
+    document.body.classList.add('modal-open');
+  }
 
   const simulationModal = document.getElementById('simulationModal');
   const closeSimulation = document.getElementById('closeSimulation');
