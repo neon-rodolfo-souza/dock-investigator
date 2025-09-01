@@ -533,6 +533,20 @@ document.addEventListener('DOMContentLoaded', () => {
     return statusDescriptions[status] ? `${status} - ${statusDescriptions[status]}` : status;
   }
 
+  function getStatusIcon(saldoParcela, vencimentoParcela) {
+    const currentDate = new Date();
+    const dueDate = new Date(vencimentoParcela);
+
+    if (saldoParcela === 0) {
+      return '🟢'; // Green icon for payment made
+    } else if (saldoParcela > 0 && dueDate > currentDate) {
+      return '🟡'; // Yellow icon for awaiting payment
+    } else if (saldoParcela > 0 && dueDate < currentDate) {
+      return '🔴'; // Red icon for overdue
+    }
+    return '';
+  }
+
   function openParcelasModal(parcelas) {
     let parcelasModal = document.getElementById('parcelasModal');
     if (!parcelasModal) {
@@ -557,6 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <th>Vencimento Parcela</th>
               <th>Saldo Parcela</th>
               <th>Valor Juros Correcao</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -569,12 +584,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     parcelas.sort((a, b) => a.numeroParcela - b.numeroParcela).forEach(parcela => {
       const tr = document.createElement('tr');
+      const statusIcon = getStatusIcon(parcela.saldoParcela, parcela.vencimentoParcela);
       tr.innerHTML = `
         <td>${parcela.numeroParcela}</td>
         <td>${formatValue(parcela.valorParcela)}</td>
         <td>${formatDate(parcela.vencimentoParcela)}</td>
         <td>${formatValue(parcela.saldoParcela)}</td>
         <td>${formatValue(parcela.valorJurosCorrecao)}</td>
+        <td>${statusIcon}</td>
       `;
       tbody.appendChild(tr);
     });
