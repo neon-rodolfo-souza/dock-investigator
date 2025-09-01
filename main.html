@@ -409,6 +409,9 @@
       <button class="tab-button" data-tab="eventos-tab" role="tab" aria-selected="false">
         External Events
       </button>
+      <button class="tab-button" data-tab="acordos-tab" role="tab" aria-selected="false">
+        Acordos
+      </button>
     </div>
     
     <div id="customer-tab" class="tab-content active">
@@ -453,6 +456,34 @@
       </p>
       <button class="fetch-button">Fetch EventosExternosCompras</button>
       <div class="result"></div>
+    </div>
+
+    <div id="acordos-tab" class="tab-content">
+      <div class="route-display">GET /v2/api/acordos?idConta={accountId}</div>
+      <button class="fetch-button">Fetch Acordos</button>
+      <div class="result">
+        <table class="acordos-table" style="display: none">
+          <thead>
+            <tr>
+              <th>Data Acordo</th>
+              <th>ID</th>
+              <th>Status Acordo</th>
+              <th>Valor Acordo</th>
+              <th>Quantidade Parcelas</th>
+              <th>Saldo Atual Final</th>
+              <th>Dias em Atraso</th>
+              <th>Total Pagamentos</th>
+              <th>Data Vencimento Cobrança</th>
+              <th>Data Quebra Acordo</th>
+              <th>Valor Entrada</th>
+              <th>Parcela Pedida</th>
+              <th>Vencimento Parcela Pedida</th>
+              <th>Parcelas</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
   

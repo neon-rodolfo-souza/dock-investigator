@@ -324,6 +324,100 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         } else if (tabContent.id === 'transactions-tab') {
           await fetchNotProcessedTransactions(customerId, config, tabContent, resultDiv);
+        } else if (tabContent.id === 'acordos-tab') {
+          const routeDisplay = tabContent.querySelector('.route-display');
+          routeDisplay.textContent = `GET /v2/api/acordos?idConta=${customerId}`;
+
+          try {
+            const data = await makeApiRequest(
+              `${config.dockBaseUrl}/v2/api/acordos?idConta=${customerId}`,
+              config
+            );
+
+            resultDiv.textContent = '';
+            let acordos = [];
+            if (data && typeof data === 'object' && Array.isArray(data.content)) {
+              acordos = data.content;
+            } else if (Array.isArray(data)) {
+              acordos = data;
+            }
+
+            acordos.sort((a, b) => new Date(b.dataAcordo) - new Date(a.dataAcordo));
+
+            let table = resultDiv.querySelector('.acordos-table');
+            if (!table) {
+              table = document.createElement('table');
+              table.className = 'acordos-table';
+              const thead = document.createElement('thead');
+              thead.innerHTML = `
+                <tr>
+                  <th>Data Acordo</th>
+                  <th>ID</th>
+                  <th>Status Acordo</th>
+                  <th>Valor Acordo</th>
+                  <th>Quantidade Parcelas</th>
+                  <th>Saldo Atual Final</th>
+                  <th>Dias em Atraso</th>
+                  <th>Total Pagamentos</th>
+                  <th>Data Vencimento Cobrança</th>
+                  <th>Data Quebra Acordo</th>
+                  <th>Valor Entrada</th>
+                  <th>Parcela Pedida</th>
+                  <th>Vencimento Parcela Pedida</th>
+                  <th>Parcelas</th>
+                </tr>
+              `;
+              table.appendChild(thead);
+              const tbody = document.createElement('tbody');
+              table.appendChild(tbody);
+            }
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = '';
+
+            acordos.forEach(acordo => {
+              const row = document.createElement('tr');
+              
+              row.innerHTML = `
+                <td>${formatDate(acordo.dataAcordo)}</td>
+                <td>${acordo.id}</td>
+                <td>${formatStatusAcordo(acordo.statusAcordo)}</td>
+                <td>${formatValue(acordo.valorAcordo)}</td>
+                <td>${acordo.quantidadeParcelas}</td>
+                <td>${formatValue(acordo.saldoAtualFinal)}</td>
+                <td>${acordo.diasEmAtraso}</td>
+                <td>${formatValue(acordo.totalPagamentos)}</td>
+                <td>${formatDate(acordo.dataVencimentoCobranca)}</td>
+                <td>${formatDate(acordo.dataQuebraAcordo)}</td>
+                <td>${formatValue(acordo.valorEntrada)}</td>
+                <td>${acordo.parcelaPedida}</td>
+                <td>${formatDate(acordo.vencimentoParcelaPedida)}</td>
+                <td>
+                  <button type="button" class="details-button" data-id="${acordo.id}">Parcelas</button>
+                </td>
+              `;
+
+              tbody.appendChild(row);
+
+              const detailsButton = row.querySelector('.details-button');
+              detailsButton.addEventListener('click', async () => {
+                try {
+                  const detailData = await makeApiRequest(
+                    `${config.dockBaseUrl}/v2/api/acordos/${acordo.id}`,
+                    config
+                  );
+
+                  openParcelasModal(detailData.parcelas);
+                } catch (error) {
+                  alert(`Error fetching parcelas details: ${error.message}`);
+                }
+              });
+            });
+
+            table.style.display = 'table';
+            resultDiv.appendChild(table);
+          } catch (error) {
+            resultDiv.textContent = `Error: ${error.message}`;
+          }
         } else if (tabContent.id === 'eventos-tab') {
           await fetchEventosExternosCompras(customerId, config, tabContent, resultDiv);
         }
@@ -427,7 +521,88 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('modal-open');
   }
 
-  const simulationModal = document.getElementById('simulationModal');
+  function formatStatusAcordo(status) {
+    const statusDescriptions = {
+      1: "Potencial Acordo",
+      2: "Em Andamento",
+      3: "Encerrado Debito",
+      4: "Encerrado Credito",
+      5: "Re-Acordo",
+      6: "Quebra de Acordo"
+    };
+    return statusDescriptions[status] ? `${status} - ${statusDescriptions[status]}` : status;
+  }
+
+  function openParcelasModal(parcelas) {
+    let parcelasModal = document.getElementById('parcelasModal');
+    if (!parcelasModal) {
+      parcelasModal = document.createElement('div');
+      parcelasModal.id = 'parcelasModal';
+      parcelasModal.className = 'modal';
+      parcelasModal.style.cssText = 'position: fixed; z-index: 1500; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); display: none;';
+      document.body.appendChild(parcelasModal);
+    }
+
+    parcelasModal.innerHTML = `
+      <div class="modal-content" style="position: relative; background-color: #252525; margin: 10% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 800px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); color: #e0e0e0;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #444;">
+          <span class="route-display" style="font-weight: bold; color: #9ecaff; padding-bottom: 10px;">Parcelas Details</span>
+          <span class="close-modal" style="cursor: pointer; font-size: 24px; font-weight: bold; color: #e0e0e0;">&times;</span>
+        </div>
+        <table class="parcelas-table" style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>Numero Parcela</th>
+              <th>Valor Parcela</th>
+              <th>Vencimento Parcela</th>
+              <th>Saldo Parcela</th>
+              <th>Valor Juros Correcao</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    `;
+
+    const tbody = parcelasModal.querySelector('.parcelas-table tbody');
+    tbody.innerHTML = '';
+
+    parcelas.sort((a, b) => a.numeroParcela - b.numeroParcela).forEach(parcela => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${parcela.numeroParcela}</td>
+        <td>${formatValue(parcela.valorParcela)}</td>
+        <td>${formatDate(parcela.vencimentoParcela)}</td>
+        <td>${formatValue(parcela.saldoParcela)}</td>
+        <td>${formatValue(parcela.valorJurosCorrecao)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    parcelasModal.style.display = 'block';
+    document.body.classList.add('modal-open');
+
+    const closeModal = parcelasModal.querySelector('.close-modal');
+    closeModal.addEventListener('click', () => {
+      parcelasModal.style.display = 'none';
+      document.body.classList.remove('modal-open');
+    });
+
+    parcelasModal.addEventListener('click', (e) => {
+      if (e.target === parcelasModal) {
+        parcelasModal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && parcelasModal.style.display === 'block') {
+        parcelasModal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+      }
+    });
+  }
+
   const closeSimulation = document.getElementById('closeSimulation');
   if (closeSimulation) {
     closeSimulation.addEventListener('click', () => {
@@ -696,4 +871,3 @@ function setupConfigModal() {
   
   document.getElementById('saveConfig').addEventListener('click', saveConfiguration);
 }
-
