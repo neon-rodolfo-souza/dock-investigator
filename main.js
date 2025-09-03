@@ -355,10 +355,11 @@ document.addEventListener('DOMContentLoaded', () => {
                   <th>ID</th>
                   <th>Status Acordo</th>
                   <th>Valor Acordo</th>
+                  <th>Total Pagamentos</th>
+                  <th>Saldo Devedor (Calculado)</th>
                   <th>Quantidade Parcelas</th>
                   <th>Saldo Atual Final</th>
                   <th>Dias em Atraso</th>
-                  <th>Total Pagamentos</th>
                   <th>Data Vencimento Cobrança</th>
                   <th>Data Quebra Acordo</th>
                   <th>Valor Entrada</th>
@@ -374,18 +375,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const tbody = table.querySelector('tbody');
             tbody.innerHTML = '';
 
-            acordos.forEach(acordo => {
-              const row = document.createElement('tr');
+acordos.forEach(acordo => {
+  acordo.saldoCalculado = acordo.valorAcordo - acordo.totalPagamentos;
+  const row = document.createElement('tr');
               
               row.innerHTML = `
                 <td>${formatDate(acordo.dataAcordo)}</td>
                 <td>${acordo.id}</td>
                 <td>${formatStatusAcordo(acordo.statusAcordo)}</td>
                 <td>${formatValue(acordo.valorAcordo)}</td>
+                <td>${formatValue(acordo.totalPagamentos)}</td>
+                <td>${formatValue(acordo.saldoCalculado)}</td>
                 <td>${acordo.quantidadeParcelas}</td>
                 <td>${formatValue(acordo.saldoAtualFinal)}</td>
                 <td>${acordo.diasEmAtraso}</td>
-                <td>${formatValue(acordo.totalPagamentos)}</td>
                 <td>${formatDate(acordo.dataVencimentoCobranca)}</td>
                 <td>${formatDate(acordo.dataQuebraAcordo)}</td>
                 <td>${formatValue(acordo.valorEntrada)}</td>
