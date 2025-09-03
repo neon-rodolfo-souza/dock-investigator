@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   loadConfiguration();
-  document.getElementById('customerId').focus();
+
 
   const configIcon = document.getElementById('configIcon');
   const configModal = document.getElementById('configModal');
@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.sync.set(config, () => {
       configModal.classList.remove('active');
       document.body.classList.remove('modal-open');
-      loadConfiguration();
     });
   });
 
