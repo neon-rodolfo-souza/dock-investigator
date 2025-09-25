@@ -412,6 +412,9 @@
       <button class="tab-button" data-tab="acordos-tab" role="tab" aria-selected="false">
         Acordos
       </button>
+      <button class="tab-button" data-tab="timeline-tab" role="tab" aria-selected="false">
+        TimeLine
+      </button>
     </div>
     
     <div id="customer-tab" class="tab-content active">
@@ -480,6 +483,26 @@
               <th>Parcela Pedida</th>
               <th>Vencimento Parcela Pedida</th>
               <th>Parcelas</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="timeline-tab" class="tab-content">
+      <div class="route-display">GET /v2/api/contas/{accountId}/timeline</div>
+      <button class="fetch-button">Fetch TimeLine</button>
+      <div class="result">
+        <table class="timeline-table" style="display: none">
+          <thead>
+            <tr>
+              <th>Data Evento</th>
+              <th>ID Tipo Registro</th>
+              <th>ID Transacao</th>
+              <th>Valor</th>
+              <th>Quantidade Parcelas</th>
+              <th>Descricao</th>
             </tr>
           </thead>
           <tbody></tbody>

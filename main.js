@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  document.querySelectorAll('.fetch-button').forEach(button => {
+document.querySelectorAll('.fetch-button').forEach(button => {
     button.addEventListener('click', async (e) => {
       const tabContent = e.target.closest('.tab-content');
       const resultDiv = tabContent.querySelector('.result');
@@ -70,6 +70,66 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         resultDiv.textContent = 'Loading...';
+
+        if (tabContent.id === 'timeline-tab') {
+          const routeDisplay = tabContent.querySelector('.route-display');
+          routeDisplay.textContent = `GET /v2/api/contas/${customerId}/timeline`;
+
+          try {
+            const data = await makeApiRequest(
+              `${config.dockBaseUrl}/v2/api/contas/${customerId}/timeline`,
+              config
+            );
+
+            resultDiv.textContent = '';
+            let timeline = [];
+            if (data && typeof data === 'object' && Array.isArray(data.content)) {
+              timeline = data.content;
+            }
+
+            timeline.sort((a, b) => new Date(b.dataEvento) - new Date(a.dataEvento));
+
+            let table = resultDiv.querySelector('.timeline-table');
+            if (!table) {
+              table = document.createElement('table');
+              table.className = 'timeline-table';
+              const thead = document.createElement('thead');
+              thead.innerHTML = `
+                <tr>
+                  <th>Data Evento</th>
+                  <th>ID Tipo Registro</th>
+                  <th>ID Transacao</th>
+                  <th>Valor</th>
+                  <th>Quantidade Parcelas</th>
+                  <th>Descricao</th>
+                </tr>
+              `;
+              table.appendChild(thead);
+              const tbody = document.createElement('tbody');
+              table.appendChild(tbody);
+            }
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = '';
+
+            timeline.forEach(event => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td>${formatDate(event.dataEvento)}</td>
+                <td>${event.idTipoRegistro}</td>
+                <td>${event.idTransacao || 'N/A'}</td>
+                <td>${formatValue(event.valor)}</td>
+                <td>${event.quantidadeParcelas || 'N/A'}</td>
+                <td>${event.descricao}</td>
+              `;
+              tbody.appendChild(row);
+            });
+
+            table.style.display = 'table';
+            resultDiv.appendChild(table);
+          } catch (error) {
+            resultDiv.textContent = `Error: ${error.message}`;
+          }
+        }
 
         if (tabContent.id === 'customer-tab') {
           const routeDisplay = tabContent.querySelector('.route-display');
