@@ -444,7 +444,7 @@ acordos.forEach(acordo => {
                 <td>${formatStatusAcordo(acordo.statusAcordo)}</td>
                 <td>${formatValue(acordo.valorAcordo)}</td>
                 <td>${formatValue(acordo.totalPagamentos)}</td>
-                <td>${formatValue(acordo.saldoCalculado)}</td>
+<td style="color: ${acordo.saldoCalculado < 0 ? 'orange' : 'inherit'};">${formatValue(acordo.saldoCalculado)}</td>
                 <td>${acordo.quantidadeParcelas}</td>
                 <td>${formatValue(acordo.saldoAtualFinal)}</td>
                 <td>${acordo.diasEmAtraso}</td>
@@ -599,7 +599,7 @@ acordos.forEach(acordo => {
     const currentDate = new Date();
     const dueDate = new Date(vencimentoParcela);
 
-    if (saldoParcela === 0) {
+    if (saldoParcela <= 0) {
       return '🟢'; // Green icon for payment made
     } else if (saldoParcela > 0 && dueDate > currentDate) {
       return '🟡'; // Yellow icon for awaiting payment
@@ -651,7 +651,7 @@ acordos.forEach(acordo => {
         <td>${parcela.numeroParcela}</td>
         <td>${formatValue(parcela.valorParcela)}</td>
         <td>${formatDate(parcela.vencimentoParcela)}</td>
-        <td>${formatValue(parcela.saldoParcela)}</td>
+<td style="color: ${parcela.saldoParcela < 0 ? 'orange' : 'inherit'};">${formatValue(parcela.saldoParcela)}</td>
         <td>${formatValue(parcela.valorJurosCorrecao)}</td>
         <td>${statusIcon}</td>
       `;
